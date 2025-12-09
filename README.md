@@ -23,10 +23,10 @@ You get: Python script + requirements + setup instructions
 
 ```bash
 # Add the plugin marketplace
-/plugin marketplace add https://github.com/adrianpuiu/agent-generator-marketplace
+/plugin marketplace add https://github.com/yourusername/agent-generator-marketplace
 
 # Install the plugin
-/plugin install agent-generator
+/plugin install agent-generator@your-marketplace
 ```
 
 ### Verify Installation
