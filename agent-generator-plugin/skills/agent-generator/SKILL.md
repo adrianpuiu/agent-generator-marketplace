@@ -711,3 +711,418 @@ Results & Insights
 ✅ Production-Ready
 ✅ Scalable to Enterprise
 🚀 Ready to Deploy
+
+---
+
+## Long-Running Agent Harness (Phase 5)
+
+### Overview
+
+Phase 5 implements Anthropic's long-running agent patterns for multi-session, complex projects spanning days or weeks.
+
+**Problem Solved:**
+Agents traditionally fail on long-running projects because they lose context between sessions, attempt too much at once, or don't test thoroughly before marking features complete.
+
+**Solution:**
+Two-part framework combining initialization (setup environment) with disciplined coding agent protocols (incremental work, thorough testing, clean handoffs).
+
+---
+
+### Two Core Commands
+
+#### 1. Initialize Long-Running Project
+```
+/initialize-long-running "project_name" "description"
+```
+
+Sets up production-ready environment for multi-session work:
+
+**Creates:**
+- `features.json` (200+ features, all `passes: false`)
+- `claude-progress.txt` (session tracking log)
+- `init.sh` (environment setup script)
+- Git repository (with baseline commit)
+- Baseline tests (verify core functionality)
+
+**Use When:**
+- Starting multi-week project
+- Need structured feature tracking
+- Want session-to-session continuity
+- Building complex system
+
+**Example:**
+```bash
+/initialize-long-running "trading_pipeline" \
+  "Build order-flow analysis with pattern detection" \
+  --features auto \
+  --sessions-expected 25 \
+  --integrate github,slack
+```
+
+---
+
+#### 2. Work On Feature
+```
+/work-on-feature "project_id" --session N
+```
+
+Execute single session with disciplined protocol:
+
+**Session Protocol:**
+1. Get bearings (read progress, git log, run baseline)
+2. Select work (pick highest-priority incomplete feature)
+3. Implement (ONE feature, test thoroughly)
+4. Verify (run baseline, mark complete, commit)
+5. Handoff (update progress file, leave guidance)
+
+**Features:**
+- Enforces one feature per session
+- Mandatory testing before completion
+- Automatic baseline verification
+- Git commit for each feature
+- Progress file updates
+- Clear handoff for next session
+
+**Example:**
+```bash
+/work-on-feature "trading_pipeline" --session 2 \
+  --features-to-work-on 4 \
+  --verify-baseline yes
+```
+
+---
+
+### Session Protocol Detail
+
+#### Phase 1: Get Bearings (5-10 min)
+```
+→ Run init.sh (start environment)
+→ Read claude-progress.txt (understand history)
+→ git log --oneline (see recent work)
+→ pytest tests/baseline_test.py (verify nothing broke)
+```
+
+#### Phase 2: Select Work (2-5 min)
+```
+→ Read features.json
+→ Find first incomplete feature (passes: false)
+→ Check dependencies satisfied
+→ Select it as work item
+```
+
+#### Phase 3: Implement (20-40 min)
+```
+→ Understand feature requirements
+→ Write minimal code
+→ Test locally
+→ Commit intermediate progress
+```
+
+#### Phase 4: Verify & Commit (5-10 min)
+```
+→ Run baseline tests (must pass!)
+→ Test feature manually (end-to-end)
+→ Mark feature complete (update JSON)
+→ Create meaningful git commit
+→ Update progress file with session notes
+```
+
+#### Phase 5: Handoff (5 min)
+```
+→ Document what was accomplished
+→ List any blockers/issues
+→ Provide explicit guidance for next session
+→ Ensure clean state
+```
+
+---
+
+### Core Patterns
+
+#### Pattern 1: Feature Specification
+Comprehensive JSON file with 100+ features:
+
+```json
+{
+  "id": "001",
+  "priority": "critical",
+  "description": "Data loader reads CSV files",
+  "steps": [
+    "Load CSV from path",
+    "Parse headers",
+    "Validate data types",
+    "Return as DataFrame"
+  ],
+  "passes": false,
+  "verified_in_session": null,
+  "blockers": [],
+  "notes": ""
+}
+```
+
+**Key:** Features can't be removed/edited, only `passes` field can change
+
+#### Pattern 2: Progress Tracking
+Session-by-session log with complete context:
+
+```
+SESSION 2 [2024-12-10 09:00]
+- Features 001-003: PASS
+- Time spent: 37 minutes
+- Status: CLEAN STATE ✓
+- Next: Work on features 004-006
+```
+
+#### Pattern 3: Environment Setup
+Automated `init.sh` script for reproducibility:
+
+```bash
+#!/bin/bash
+set -e
+source venv/bin/activate
+pip install -r requirements.txt
+pytest tests/baseline_test.py
+```
+
+#### Pattern 4: Testing Protocol
+Mandatory end-to-end testing before marking complete:
+
+```
+✓ Actually run the feature
+✓ Test with valid data
+✓ Test with edge cases
+✓ Verify all steps work
+✗ Not sufficient: Just code review or unit tests
+```
+
+#### Pattern 5: Git Commits
+Meaningful commits with feature tracking:
+
+```
+git commit -m "Implement feature 004: Error handling
+
+- Handle malformed input gracefully
+- Return helpful error messages
+- Tested with bad data
+- All baseline tests passing"
+```
+
+---
+
+### Real-World Workflow Examples
+
+#### Example 1: Trading System (25 Sessions, 2 Weeks)
+```
+Session 1: Initialization (setup, 180 features)
+Sessions 2-5: Core data pipeline (6-7 features each)
+Sessions 6-10: Data analysis (5-6 features each)
+Sessions 11-15: ML models (5 features each)
+Sessions 16-22: Backtesting (3-4 features each)
+Sessions 23-25: Polish (2-3 features each)
+
+Total: 180 features → 25 sessions → 2 weeks
+Progress: 5-7 features per session → 20% completion by day 3
+```
+
+#### Example 2: Web Application (40 Sessions, 1 Month)
+```
+Phases:
+- Frontend: Sessions 1-10 (UI, state, styling)
+- API: Sessions 11-22 (auth, endpoints, data)
+- Database: Sessions 23-30 (schema, queries)
+- Integration: Sessions 31-38 (e2e testing, bugs)
+- Deployment: Sessions 39-40 (production, security)
+
+Expected: 200+ features → 40 sessions → 1 month
+```
+
+#### Example 3: Data Pipeline (12 Sessions, 1 Week)
+```
+- Extract: Sessions 1-3 (API connectors)
+- Transform: Sessions 4-7 (data cleaning)
+- Load: Sessions 8-10 (database)
+- Monitor: Sessions 11-12 (logging, alerts)
+
+Total: 120 features → 12 sessions → 1 week
+```
+
+---
+
+### Failure Prevention
+
+**Common Failure Modes & Solutions:**
+
+| Failure | Cause | Solution |
+|---------|-------|----------|
+| Too much per session | Scope creep | Enforce: one feature max |
+| Premature completion | No testing | Require: end-to-end testing |
+| Broken state | No baseline check | Mandatory: baseline test pass |
+| Lost context | No handoff | Structured: progress file |
+| Can't continue | No git history | Meaningful: git commits |
+
+---
+
+### Key Differences from Phase 1-4
+
+| Aspect | Phase 1-4 | Phase 5 |
+|--------|-----------|---------|
+| **Duration** | Single session | Multiple sessions |
+| **Context Windows** | 1 | N (days/weeks) |
+| **Scope** | Complete task | One feature |
+| **State Persistence** | Temporary | Permanent |
+| **Testing** | Embedded | Explicit protocol |
+| **Handoff** | Compaction | Documentation |
+| **Failure Recovery** | Restart | Git revert |
+| **Use Case** | Research, analysis | Software projects |
+
+---
+
+### Success Metrics
+
+✅ **Velocity:** 3-8 features per session
+✅ **Quality:** Baseline tests 95%+ passing
+✅ **Progress:** Consistent, trackable completion
+✅ **Documentation:** Updated each session
+✅ **Code Quality:** Committable, mergeable code
+✅ **Testing:** End-to-end verified
+✅ **Handoffs:** Clear guidance for next session
+
+---
+
+### Phase 5 Advantages
+
+**Over Single-Session Agents:**
+- ✅ Multi-week projects viable
+- ✅ Complex systems buildable
+- ✅ Clear progress tracking
+- ✅ Risk mitigation (baseline tests)
+- ✅ Easy team handoffs
+- ✅ Historical record
+- ✅ Error recovery (git)
+
+**For Your Projects:**
+- ✅ Trading systems (order-flow, backtesting)
+- ✅ Data pipelines (ETL, processing)
+- ✅ ML systems (training, evaluation)
+- ✅ Web applications (full-stack)
+- ✅ Research automation (weeks/months)
+
+---
+
+### Reference Guides
+
+**New References for Phase 5:**
+- `long_running_agent_patterns.md` - Detailed patterns and principles
+- `multi_session_workflows.md` - Real-world workflow examples
+
+These expand on implementation details and provide project templates.
+
+---
+
+### Getting Started
+
+**Step 1: Initialize Project**
+```bash
+/initialize-long-running "your_project" "description" \
+  --features auto \
+  --sessions-expected 20 \
+  --integrate github,slack
+```
+
+**Step 2: Verify Setup**
+```bash
+cat features.json | head -20    # See feature spec
+cat claude-progress.txt         # Check progress tracking
+bash init.sh                    # Test environment
+```
+
+**Step 3: Start First Coding Session**
+```bash
+/work-on-feature "your_project" --session 1 \
+  --verify-baseline yes
+```
+
+**Step 4: Monitor Progress**
+```bash
+# Each session reads and updates these files:
+cat features.json | grep '"passes": true' | wc -l  # Count done
+cat claude-progress.txt | tail -20                   # See history
+git log --oneline -30                                # Git history
+```
+
+---
+
+### Integration with Phases 1-4
+
+Phase 5 works seamlessly with:
+- ✅ Planning tools (initializer creates plan)
+- ✅ Multi-agent teams (different agents per session)
+- ✅ Monitoring (`/monitor-agents` tracks progress)
+- ✅ Integrations (GitHub commits, Slack updates)
+- ✅ Memory patterns (Redis for state)
+
+**Enhanced Workflow:**
+```bash
+# Initialize complex project
+/initialize-long-running "project" "description"
+
+# Spawn agents for sessions
+/work-on-feature "project" --session 2 \
+  --integrate github,slack
+
+# Monitor overall progress
+/monitor-agents all --session-view yes
+```
+
+---
+
+### Summary
+
+**Phase 5 enables:**
+- ✅ Multi-session project management
+- ✅ Complex, long-running projects
+- ✅ Disciplined development practices
+- ✅ Clear progress tracking
+- ✅ Risk mitigation
+- ✅ Team collaboration
+- ✅ Professional-grade delivery
+
+**Perfect for:**
+- ✅ Software projects
+- ✅ Research automation
+- ✅ Data pipelines
+- ✅ ML systems
+- ✅ Complex automation
+
+**Based on Anthropic's long-running agent research.**
+
+---
+
+## Complete Command Set (Phases 1-5)
+
+| Command | Phase | Purpose |
+|---------|-------|---------|
+| `/generate-agent` | 1 | Custom agent |
+| `/research-agent` | 2 | Web research |
+| `/analysis-agent` | 2 | Data analysis |
+| `/problem-solver` | 2 | Problem-solving |
+| `/multi-agent-team` | 2 | Parallel teams |
+| `/refine-analysis` | 3 | Improve work |
+| `/agent-presets` | 3 | Optimize configuration |
+| `/integrate-agent` | 4+ | External integration |
+| `/monitor-agents` | 4+ | Real-time monitoring |
+| `/initialize-long-running` | 5 | Project initialization |
+| `/work-on-feature` | 5 | Session execution |
+
+**Total: 11 commands for complete agentic framework**
+
+---
+
+**DeepAgent Architect: Complete framework for agentic reasoning, research automation, coordinated analysis, and long-running project management.**
+
+✅ All 5 phases complete
+✅ 11 specialized commands
+✅ 50+ real examples
+✅ 5,000+ lines documentation
+✅ Production-ready
+✅ Enterprise-scalable
