@@ -1,0 +1,26 @@
+{
+  "name": "agent-generator-marketplace",
+  "owner": {
+    "name": "Adrian Puiu",
+    "email": "adrian@puiu.dev"
+  },
+  "metadata": {
+    "description": "Generate production-ready LangGraph agents from natural language with Claude Code",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "agent-generator",
+      "source": "./agent-generator-plugin",
+      "description": "Generate production-ready LangGraph agents from natural language descriptions with Redis memory, error handling, and logging",
+      "version": "1.0.0",
+      "author": {
+        "name": "Adrian Puiu",
+        "email": "adrian@puiu.dev"
+      },
+      "license": "MIT",
+      "category": "development",
+      "keywords": ["agent", "langgraph", "code-generation", "python", "ai"]
+    }
+  ]
+}
